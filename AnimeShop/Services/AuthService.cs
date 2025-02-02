@@ -1,6 +1,7 @@
-﻿using Microsoft.CodeAnalysis.Scripting;
+﻿using AnimeShop.Data;
+using AnimeShop.Models;
 
-namespace AnimeShop.Models
+namespace AnimeShop.Services
 {
     public class AuthService
     {

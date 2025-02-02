@@ -1,5 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AnimeShop.Data;
+using Microsoft.AspNetCore.Mvc;
 using AnimeShop.Models;
+using AnimeShop.Services;
+using AnimeShop.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 namespace AnimeShop.Controllers

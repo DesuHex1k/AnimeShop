@@ -1,4 +1,5 @@
-using AnimeShop.Models;
+using AnimeShop.Data;
+using AnimeShop.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);

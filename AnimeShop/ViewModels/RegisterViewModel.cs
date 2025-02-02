@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
+namespace AnimeShop.ViewModels;
+
 public class RegisterViewModel
 {
     [Required]
@@ -18,4 +20,3 @@ public class RegisterViewModel
     public string? FirstName { get; set; }
     public string? LastName { get; set; }
 }
-
