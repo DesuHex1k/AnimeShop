@@ -1,37 +1,22 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using AnimeShop.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using AnimeShop.Models;
 
 namespace AnimeShop.Controllers
 {
-    public class WishlistsController : Controller
+    public class WishlistsController(AnimeShopContext context) : Controller
     {
-        private readonly AnimeShopContext _context;
-
-        public WishlistsController(AnimeShopContext context)
-        {
-            _context = context;
-        }
-
         // GET: Wishlists
         public async Task<IActionResult> Index()
         {
-            if (!Request.Cookies.ContainsKey("CustomerId"))
-            {
-                return RedirectToAction("Login", "Auth");
-            }
-
-            if (!int.TryParse(Request.Cookies["CustomerId"], out int customerId) || customerId <= 0)
+            if (!TryGetCustomerId(out int customerId))
             {
                 return BadRequest("Invalid customer ID.");
             }
 
-            var wishlistItems = await _context.Wishlists
-                .Include(w => w.Product) // Include only necessary data
+            var wishlistItems = await context.Wishlists
+                .Include(w => w.Product)
                 .Where(w => w.CustomerId == customerId)
                 .ToListAsync();
 
@@ -46,8 +31,8 @@ namespace AnimeShop.Controllers
                 return NotFound();
             }
 
-            var product = await _context.Products
-                .Include(p => p.Category) // Include only necessary data
+            var product = await context.Products
+                .Include(p => p.Category)
                 .FirstOrDefaultAsync(m => m.ProductId == id);
 
             if (product == null)
@@ -61,12 +46,7 @@ namespace AnimeShop.Controllers
         [HttpPost]
         public async Task<IActionResult> ToggleWishlist(int productId)
         {
-            if (!Request.Cookies.ContainsKey("CustomerId"))
-            {
-                return RedirectToAction("Login", "Auth");
-            }
-
-            if (!int.TryParse(Request.Cookies["CustomerId"], out int customerId) || customerId <= 0)
+            if (!TryGetCustomerId(out int customerId))
             {
                 return BadRequest("Invalid customer ID.");
             }
@@ -83,12 +63,7 @@ namespace AnimeShop.Controllers
         [HttpPost]
         public async Task<IActionResult> ToggleWishlistFromWishlist(int productId)
         {
-            if (!Request.Cookies.ContainsKey("CustomerId"))
-            {
-                return Unauthorized();
-            }
-
-            if (!int.TryParse(Request.Cookies["CustomerId"], out int customerId) || customerId <= 0)
+            if (!TryGetCustomerId(out int customerId))
             {
                 return BadRequest("Invalid customer ID.");
             }
@@ -105,12 +80,12 @@ namespace AnimeShop.Controllers
         // Private method to handle wishlist toggling
         private async Task ToggleWishlistItem(int customerId, int productId)
         {
-            var wishlistItem = await _context.Wishlists
+            var wishlistItem = await context.Wishlists
                 .FirstOrDefaultAsync(w => w.CustomerId == customerId && w.ProductId == productId);
 
             if (wishlistItem != null)
             {
-                _context.Wishlists.Remove(wishlistItem);
+                context.Wishlists.Remove(wishlistItem);
             }
             else
             {
@@ -120,17 +95,17 @@ namespace AnimeShop.Controllers
                     CustomerId = customerId,
                     ProductId = productId
                 };
-                _context.Wishlists.Add(newWishlistItem);
+                context.Wishlists.Add(newWishlistItem);
             }
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
         }
 
         // GET: Wishlists/Create
         public IActionResult Create()
         {
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CustomerId");
-            ViewData["ProductId"] = new SelectList(_context.Products, "ProductId", "ProductId");
+            ViewData["CustomerId"] = new SelectList(context.Customers, "CustomerId", "CustomerId");
+            ViewData["ProductId"] = new SelectList(context.Products, "ProductId", "ProductId");
             return View();
         }
 
@@ -141,12 +116,12 @@ namespace AnimeShop.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(wishlist);
-                await _context.SaveChangesAsync();
+                context.Add(wishlist);
+                await context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CustomerId", wishlist.CustomerId);
-            ViewData["ProductId"] = new SelectList(_context.Products, "ProductId", "ProductId", wishlist.ProductId);
+            ViewData["CustomerId"] = new SelectList(context.Customers, "CustomerId", "CustomerId", wishlist.CustomerId);
+            ViewData["ProductId"] = new SelectList(context.Products, "ProductId", "ProductId", wishlist.ProductId);
             return View(wishlist);
         }
 
@@ -158,13 +133,13 @@ namespace AnimeShop.Controllers
                 return NotFound();
             }
 
-            var wishlist = await _context.Wishlists.FindAsync(id);
+            var wishlist = await context.Wishlists.FindAsync(id);
             if (wishlist == null)
             {
                 return NotFound();
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CustomerId", wishlist.CustomerId);
-            ViewData["ProductId"] = new SelectList(_context.Products, "ProductId", "ProductId", wishlist.ProductId);
+            ViewData["CustomerId"] = new SelectList(context.Customers, "CustomerId", "CustomerId", wishlist.CustomerId);
+            ViewData["ProductId"] = new SelectList(context.Products, "ProductId", "ProductId", wishlist.ProductId);
             return View(wishlist);
         }
 
@@ -182,8 +157,8 @@ namespace AnimeShop.Controllers
             {
                 try
                 {
-                    _context.Update(wishlist);
-                    await _context.SaveChangesAsync();
+                    context.Update(wishlist);
+                    await context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -198,8 +173,8 @@ namespace AnimeShop.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            ViewData["CustomerId"] = new SelectList(_context.Customers, "CustomerId", "CustomerId", wishlist.CustomerId);
-            ViewData["ProductId"] = new SelectList(_context.Products, "ProductId", "ProductId", wishlist.ProductId);
+            ViewData["CustomerId"] = new SelectList(context.Customers, "CustomerId", "CustomerId", wishlist.CustomerId);
+            ViewData["ProductId"] = new SelectList(context.Products, "ProductId", "ProductId", wishlist.ProductId);
             return View(wishlist);
         }
 
@@ -211,8 +186,8 @@ namespace AnimeShop.Controllers
                 return NotFound();
             }
 
-            var wishlist = await _context.Wishlists
-                .Include(w => w.Product) // Include only necessary data
+            var wishlist = await context.Wishlists
+                .Include(w => w.Product)
                 .FirstOrDefaultAsync(m => m.WishlistId == id);
 
             if (wishlist == null)
@@ -228,19 +203,31 @@ namespace AnimeShop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var wishlist = await _context.Wishlists.FindAsync(id);
+            var wishlist = await context.Wishlists.FindAsync(id);
             if (wishlist != null)
             {
-                _context.Wishlists.Remove(wishlist);
+                context.Wishlists.Remove(wishlist);
             }
 
-            await _context.SaveChangesAsync();
+            await context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
         private bool WishlistExists(int id)
         {
-            return _context.Wishlists.Any(e => e.WishlistId == id);
+            return context.Wishlists.Any(e => e.WishlistId == id);
+        }
+        
+        private bool TryGetCustomerId(out int customerId)
+        {
+            if (Request.Cookies.ContainsKey("CustomerId"))
+            {
+                customerId = int.Parse(Request.Cookies["CustomerId"] ?? throw new InvalidOperationException("Invalid customer ID."));
+                return true;
+            }
+
+            customerId = 0;
+            return false;
         }
     }
 }
