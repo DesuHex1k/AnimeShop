@@ -1,7 +1,6 @@
-﻿using System.Collections.Generic;
-using AnimeShop.Models;
+﻿using AnimeShop.Models;
 
-namespace AnimeShop.Models;
+namespace AnimeShop.ViewModels;
 public partial class ProductViewModel
     {
         public List<Product> Products { get; set; }

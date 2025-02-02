@@ -2,6 +2,7 @@
 using AnimeShop.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using AnimeShop.Data;
 
 namespace AnimeShop.Controllers
 {

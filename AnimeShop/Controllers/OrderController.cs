@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using AnimeShop.Data;
 using AnimeShop.Models;
 using Microsoft.EntityFrameworkCore;
 

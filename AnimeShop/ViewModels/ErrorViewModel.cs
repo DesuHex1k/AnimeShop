@@ -1,4 +1,4 @@
-namespace AnimeShop.Models
+namespace AnimeShop.ViewModels
 {
     public class ErrorViewModel
     {

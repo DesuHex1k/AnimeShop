@@ -1,4 +1,6 @@
-﻿namespace AnimeShop.Models
+﻿using AnimeShop.Models;
+
+namespace AnimeShop.ViewModels
 {
     public class ProductDetailsViewModel
     {

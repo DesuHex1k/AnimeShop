@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using AnimeShop.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace AnimeShop.Models;
+namespace AnimeShop.Data;
 
 public partial class AnimeShopContext : DbContext
 {
