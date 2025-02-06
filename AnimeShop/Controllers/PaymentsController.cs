@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using AnimeShop.Models;
 
@@ -34,12 +32,8 @@ namespace AnimeShop.Controllers
 
             var payment = await _context.Payments
                 .FirstOrDefaultAsync(m => m.PaymentId == id);
-            if (payment == null)
-            {
-                return NotFound();
-            }
 
-            return View(payment);
+            return payment == null ? NotFound() : View(payment);
         }
 
         // GET: Payments/Create
@@ -49,8 +43,6 @@ namespace AnimeShop.Controllers
         }
 
         // POST: Payments/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("PaymentId,CardNumber,Cvv,Name,Month,Year")] Payment payment, int id)
@@ -58,8 +50,7 @@ namespace AnimeShop.Controllers
             if (ModelState.IsValid)
             {
                 payment.PaymentId = id;
-                _context.Add(payment);
-                await _context.SaveChangesAsync();
+                await AddPaymentAsync(payment);
                 return RedirectToAction(nameof(Index));
             }
             return View(payment);
@@ -74,16 +65,10 @@ namespace AnimeShop.Controllers
             }
 
             var payment = await _context.Payments.FindAsync(id);
-            if (payment == null)
-            {
-                return NotFound();
-            }
-            return View(payment);
+            return payment == null ? NotFound() : View(payment);
         }
 
         // POST: Payments/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(int id, [Bind("PaymentId,CardNumber,Cvv,Name,Month,Year")] Payment payment)
@@ -97,8 +82,8 @@ namespace AnimeShop.Controllers
             {
                 try
                 {
-                    _context.Update(payment);
-                    await _context.SaveChangesAsync();
+                    await UpdatePaymentAsync(payment);
+                    return RedirectToAction("Dashboard", "Customer");
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -106,12 +91,8 @@ namespace AnimeShop.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
-                return RedirectToAction("Dashboard", "Customer");
             }
             return View(payment);
         }
@@ -126,12 +107,8 @@ namespace AnimeShop.Controllers
 
             var payment = await _context.Payments
                 .FirstOrDefaultAsync(m => m.PaymentId == id);
-            if (payment == null)
-            {
-                return NotFound();
-            }
 
-            return View(payment);
+            return payment == null ? NotFound() : View(payment);
         }
 
         // POST: Payments/Delete/5
@@ -142,16 +119,35 @@ namespace AnimeShop.Controllers
             var payment = await _context.Payments.FindAsync(id);
             if (payment != null)
             {
-                _context.Payments.Remove(payment);
+                await DeletePaymentAsync(payment);
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
+        #region Helpers
         private bool PaymentExists(int id)
         {
             return _context.Payments.Any(e => e.PaymentId == id);
         }
+
+        private async Task AddPaymentAsync(Payment payment)
+        {
+            _context.Add(payment);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task UpdatePaymentAsync(Payment payment)
+        {
+            _context.Update(payment);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task DeletePaymentAsync(Payment payment)
+        {
+            _context.Payments.Remove(payment);
+            await _context.SaveChangesAsync();
+        }
+        #endregion
     }
 }
