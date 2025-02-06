@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -154,8 +154,7 @@ namespace AnimeShop.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Add(product);
-                await _context.SaveChangesAsync();
+                await AddProductAsync(product);
                 return RedirectToAction(nameof(Index));
             }
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", product.CategoryId);
@@ -171,12 +170,7 @@ namespace AnimeShop.Controllers
             }
 
             var product = await _context.Products.FindAsync(id);
-            if (product == null)
-            {
-                return NotFound();
-            }
-            ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", product.CategoryId);
-            return View(product);
+            return product == null ? NotFound() : View(product);
         }
 
         // POST: Products/Edit/5
@@ -193,8 +187,8 @@ namespace AnimeShop.Controllers
             {
                 try
                 {
-                    _context.Update(product);
-                    await _context.SaveChangesAsync();
+                    await UpdateProductAsync(product);
+                    return RedirectToAction(nameof(Index));
                 }
                 catch (DbUpdateConcurrencyException)
                 {
@@ -202,12 +196,8 @@ namespace AnimeShop.Controllers
                     {
                         return NotFound();
                     }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
-                return RedirectToAction(nameof(Index));
             }
             ViewData["CategoryId"] = new SelectList(_context.Categories, "CategoryId", "CategoryName", product.CategoryId);
             return View(product);
@@ -224,12 +214,8 @@ namespace AnimeShop.Controllers
             var product = await _context.Products
                 .Include(p => p.Category)
                 .FirstOrDefaultAsync(m => m.ProductId == id);
-            if (product == null)
-            {
-                return NotFound();
-            }
 
-            return View(product);
+            return product == null ? NotFound() : View(product);
         }
 
         // POST: Products/Delete/5
@@ -240,16 +226,35 @@ namespace AnimeShop.Controllers
             var product = await _context.Products.FindAsync(id);
             if (product != null)
             {
-                _context.Products.Remove(product);
+                await DeleteProductAsync(product);
             }
 
-            await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
         }
 
+        #region Helpers
         private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.ProductId == id);
         }
+
+        private async Task AddProductAsync(Product product)
+        {
+            _context.Add(product);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task UpdateProductAsync(Product product)
+        {
+            _context.Update(product);
+            await _context.SaveChangesAsync();
+        }
+
+        private async Task DeleteProductAsync(Product product)
+        {
+            _context.Products.Remove(product);
+            await _context.SaveChangesAsync();
+        }
+        #endregion
     }
 }
