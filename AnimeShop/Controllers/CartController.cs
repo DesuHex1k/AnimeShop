@@ -17,22 +17,35 @@ namespace AnimeShop.Controllers
 
         public IActionResult AddToCart(int productId, int quantity)
         {
-            
             if (!Request.Cookies.ContainsKey("CustomerId"))
             {
                 return RedirectToAction("Login", "Auth");
             }
+
             var userId = int.Parse(Request.Cookies["CustomerId"]);
+            var order = GetOrCreateOrder(userId);
+
+            var product = _context.Products.Find(productId);
+            if (product == null)
+            {
+                return RedirectToAction("Index", "Products");
+            }
+
+            AddOrUpdateOrderItem(order, productId, quantity, product.Price);
+            _context.SaveChanges();
+
+            return RedirectToAction("Index", "Cart");
+        }
+
+        private Order GetOrCreateOrder(int userId)
+        {
             var order = _context.Orders
-                .Include(o => o.OrderItems) 
+                .Include(o => o.OrderItems)
                 .FirstOrDefault(o => o.CustomerId == userId && o.Status == "нове");
 
             if (order == null)
             {
-                var maxOrderId = _context.Orders.Any()
-                    ? _context.Orders.Max(o => o.OrdersId)
-                    : 0;
-
+                var maxOrderId = _context.Orders.Any() ? _context.Orders.Max(o => o.OrdersId) : 0;
                 order = new Order
                 {
                     OrdersId = maxOrderId + 1,
@@ -44,13 +57,11 @@ namespace AnimeShop.Controllers
                 _context.SaveChanges();
             }
 
-            var product = _context.Products.Find(productId);
+            return order;
+        }
 
-            if (product == null)
-            {
-                return RedirectToAction("Index", "Products");
-            }
-
+        private void AddOrUpdateOrderItem(Order order, int productId, int quantity, int ?pricePerUnit)
+        {
             var existingOrderItem = order.OrderItems
                 .FirstOrDefault(oi => oi.ProductId == productId);
 
@@ -58,18 +69,14 @@ namespace AnimeShop.Controllers
             {
                 var orderItem = new OrderItem
                 {
-                    OrderItemId = int.Parse($"{order.OrdersId}{productId}"), 
+                    OrderItemId = int.Parse($"{order.OrdersId}{productId}"),
                     OrdersId = order.OrdersId,
                     ProductId = productId,
                     Quantity = quantity,
-                    PricePerUnit = product.Price 
+                    PricePerUnit = pricePerUnit
                 };
                 _context.OrderItems.Add(orderItem);
             }
-
-            _context.SaveChanges();
-
-            return RedirectToAction("Index", "Cart");
         }
         public IActionResult Index()
         {
