@@ -1,7 +1,6 @@
 ﻿using AnimeShop.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using AnimeShop.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.CodeAnalysis;
 
