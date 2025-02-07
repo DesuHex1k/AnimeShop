@@ -17,20 +17,12 @@ namespace AnimeShop.Controllers
         // GET: Customer/Dashboard
         public async Task<IActionResult> Dashboard()
         {
-            if (!Request.Cookies.ContainsKey("CustomerId"))
+            if (!TryGetCustomerId(out int customerId))
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            if (!int.TryParse(Request.Cookies["CustomerId"], out int customerId) || customerId <= 0)
-            {
-                return BadRequest("Invalid customer ID.");
-            }
-
-            var customer = await _context.Customers
-                .Include(c => c.Address)
-                .Include(c => c.Payment)
-                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+            var customer = await GetCustomerById(customerId);
 
             if (customer == null)
             {
@@ -39,9 +31,27 @@ namespace AnimeShop.Controllers
 
             return View(customer);
         }
+        private bool TryGetCustomerId(out int customerId)
+        {
+            customerId = 0;
+            if (!Request.Cookies.ContainsKey("CustomerId") ||
+                !int.TryParse(Request.Cookies["CustomerId"], out customerId) ||
+                customerId <= 0)
+            {
+                return false;
+            }
+            return true;
+        }
+        private async Task<Customer> GetCustomerById(int customerId)
+        {
+            return await _context.Customers
+                .Include(c => c.Address)
+                .Include(c => c.Payment)
+                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+        }
 
-        // GET: Customer/Edit
-        [HttpGet]
+            // GET: Customer/Edit
+            [HttpGet]
         public async Task<IActionResult> Edit()
         {
             if (!Request.Cookies.ContainsKey("CustomerId"))
