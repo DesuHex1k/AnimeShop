@@ -11,9 +11,9 @@ namespace AnimeShop.Models
             _context = new AnimeShopContext();
         }
 
-        public Customer ValidateUserByEmailAndPassword(string email, string password)
+        public Customer ValidateUserByEmailAndPassword(string email, string phone)
         {
-            return _context.Customers.SingleOrDefault(u => u.Email == email && u.Phone == password);
+            return _context.Customers.SingleOrDefault(u => u.Email == email && u.Phone == phone);
         }
     }
 }
