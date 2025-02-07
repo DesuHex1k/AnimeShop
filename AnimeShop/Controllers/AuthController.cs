@@ -58,41 +58,47 @@ namespace AnimeShop.Controllers
         [HttpPost]
         public IActionResult Register(RegisterViewModel model)
         {
-            if (model.Password == model.ConfirmPassword)
+            if (ModelState.IsValid)
             {
-                var newCustomer = new Customer
+                if (model.Password == model.ConfirmPassword)
                 {
-                    CustomerId = DateTime.Now.Second,
-                    Email = model.Email,
-                    Phone = model.Password,
-                    FirstName = model.FirstName,
-                    LastName = model.LastName,
-                    AddressId = DateTime.Now.Second,  
-                    PaymentId = DateTime.Now.Second    
-                };
+                    var newCustomer = CreateNewCustomer(model);
+                    _context.Customers.Add(newCustomer);
+                    AddAddressAndPayment(newCustomer.CustomerId);
+                    _context.SaveChanges();
 
-                var newAddress = new Address { AddressId = newCustomer.CustomerId };
-                var newPayment = new Payment { PaymentId = newCustomer.CustomerId };
+                    SetCustomerCookie(newCustomer.CustomerId);
 
-                _context.Customers.Add(newCustomer);
-                _context.Addresses.Add(newAddress); 
-                _context.Payments.Add(newPayment); 
-                _context.SaveChanges();
-
-                Response.Cookies.Append("CustomerId", newCustomer.CustomerId.ToString(), new CookieOptions
+                    return RedirectToAction("Dashboard", "Customer");
+                }
+                else
                 {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Strict
-                });
-
-                return RedirectToAction("Dashboard", "Customer");
-            }
-            else
-            {
-                ModelState.AddModelError(string.Empty, "Паролі не співпадають.");
+                    ModelState.AddModelError(string.Empty, "Passwords do not match.");
+                }
             }
             return View(model);
+        }
+        private Customer CreateNewCustomer(RegisterViewModel model)
+        {
+            return new Customer
+            {
+                CustomerId = DateTime.Now.Second,
+                Email = model.Email,
+                Phone = model.Password,
+                FirstName = model.FirstName,
+                LastName = model.LastName,
+                AddressId = DateTime.Now.Second,
+                PaymentId = DateTime.Now.Second
+            };
+        }
+
+        private void AddAddressAndPayment(int customerId)
+        {
+            var newAddress = new Address { AddressId = customerId };
+            var newPayment = new Payment { PaymentId = customerId };
+
+            _context.Addresses.Add(newAddress);
+            _context.Payments.Add(newPayment);
         }
 
         [HttpPost]
