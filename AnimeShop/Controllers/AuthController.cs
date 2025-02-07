@@ -60,7 +60,7 @@ namespace AnimeShop.Controllers
         {
             if (ModelState.IsValid)
             {
-                if (model.Password == model.ConfirmPassword)
+                if (model.Phone == model.ConfirmPassword)
                 {
                     var newCustomer = CreateNewCustomer(model);
                     _context.Customers.Add(newCustomer);
@@ -84,7 +84,7 @@ namespace AnimeShop.Controllers
             {
                 CustomerId = DateTime.Now.Second,
                 Email = model.Email,
-                Phone = model.Password,
+                Phone = model.Phone,
                 FirstName = model.FirstName,
                 LastName = model.LastName,
                 AddressId = DateTime.Now.Second,
