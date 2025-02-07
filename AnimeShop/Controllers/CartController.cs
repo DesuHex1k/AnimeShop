@@ -67,15 +67,6 @@ namespace AnimeShop.Controllers
                 };
                 _context.OrderItems.Add(orderItem);
             }
-            //else
-            //{
-            //    existingOrderItem.Quantity += quantity;
-
-            //    if (existingOrderItem.PricePerUnit != product.Price)
-            //    {
-            //        existingOrderItem.PricePerUnit = product.Price;
-            //    }
-            //}
 
             _context.SaveChanges();
 
