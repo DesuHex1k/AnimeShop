@@ -20,22 +20,16 @@ namespace AnimeShop.Controllers
         {
             return View();
         }
-
+        
         [HttpPost]
         public IActionResult Login(LoginViewModel model)
         {
             if (ModelState.IsValid)
             {
                 var user = _authService.ValidateUserByEmailAndPassword(model.Email, model.Password);
-
                 if (user != null)
                 {
-                    Response.Cookies.Append("CustomerId", user.CustomerId.ToString(), new CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure = true,
-                        SameSite = SameSiteMode.Strict
-                    });
+                    SetCustomerCookie(user.CustomerId);
                     return RedirectToAction("Dashboard", "Customer");
                 }
                 else
@@ -44,6 +38,15 @@ namespace AnimeShop.Controllers
                 }
             }
             return View(model);
+        }
+        private void SetCustomerCookie(int customerId)
+        {
+            Response.Cookies.Append("CustomerId", customerId.ToString(), new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Strict
+            });
         }
 
         [HttpGet]
