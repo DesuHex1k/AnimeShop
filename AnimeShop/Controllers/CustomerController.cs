@@ -50,22 +50,16 @@ namespace AnimeShop.Controllers
                 .FirstOrDefaultAsync(c => c.CustomerId == customerId);
         }
 
-            // GET: Customer/Edit
-            [HttpGet]
+        // GET: Customer/Edit
+        [HttpGet]
         public async Task<IActionResult> Edit()
         {
-            if (!Request.Cookies.ContainsKey("CustomerId"))
+            if (!TryGetCustomerId(out int customerId))
             {
                 return RedirectToAction("Login", "Auth");
             }
 
-            if (!int.TryParse(Request.Cookies["CustomerId"], out int customerId) || customerId <= 0)
-            {
-                return BadRequest("Invalid customer ID.");
-            }
-
-            var customer = await _context.Customers
-                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+            var customer = await GetCustomerById(customerId);
 
             if (customer == null)
             {
@@ -80,14 +74,9 @@ namespace AnimeShop.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Customer updatedCustomer)
         {
-            if (!Request.Cookies.ContainsKey("CustomerId"))
+            if (!TryGetCustomerId(out int customerId))
             {
                 return RedirectToAction("Login", "Auth");
-            }
-
-            if (!int.TryParse(Request.Cookies["CustomerId"], out int customerId) || customerId <= 0)
-            {
-                return BadRequest("Invalid customer ID.");
             }
 
             if (!ModelState.IsValid)
@@ -95,17 +84,14 @@ namespace AnimeShop.Controllers
                 return View(updatedCustomer);
             }
 
-            var customer = await _context.Customers
-                .FirstOrDefaultAsync(c => c.CustomerId == customerId);
+            var customer = await GetCustomerById(customerId);
 
             if (customer == null)
             {
                 return NotFound();
             }
 
-            // Update customer details
-            customer.Email = updatedCustomer.Email;
-            customer.Phone = updatedCustomer.Phone;
+            UpdateCustomerDetails(customer, updatedCustomer);
 
             try
             {
@@ -126,8 +112,11 @@ namespace AnimeShop.Controllers
 
             return RedirectToAction("Dashboard");
         }
-
-        // Helper method to check if a customer exists
+        private void UpdateCustomerDetails(Customer customer, Customer updatedCustomer)
+        {
+            customer.Email = updatedCustomer.Email;
+            customer.Phone = updatedCustomer.Phone;
+        }
         private bool CustomerExists(int id)
         {
             return _context.Customers.Any(e => e.CustomerId == id);
